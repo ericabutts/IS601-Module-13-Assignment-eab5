@@ -2,12 +2,15 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.calculator import Calculator
 from app.operations import AddOperation, SubtractOperation, OperationFactory
+from fastapi.staticfiles import StaticFiles
 
 print("Calculator imported:", Calculator)
 print("AddOperation imported:", AddOperation)
 
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="frontend"), name="frontend")
+
 
 # Optional: allow all origins for testing
 app.add_middleware(

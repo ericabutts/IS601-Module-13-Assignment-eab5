@@ -7,7 +7,7 @@ document.querySelectorAll('button[data-op]').forEach(button => {
         const b = document.getElementById('b').value;
 
         try {
-            const res = await fetch(`http://127.0.0.1:8000/calculate/${op}?a=${a}&b=${b}`);
+            const res = await fetch(`https://calculator-app-t9i1.onrender.com/calculate/${op}?a=${a}&b=${b}`);
             const data = await res.json();
             document.getElementById('result').textContent = data.result;
 
