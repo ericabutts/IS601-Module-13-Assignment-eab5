@@ -1,23 +1,36 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from app.calculator import Calculator
-from app.operations import AddOperation, SubtractOperation, OperationFactory
-from fastapi.staticfiles import StaticFiles
+# main.py
 import os
-from sqlalchemy import create_engine
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
+from dotenv import load_dotenv
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL)
+# -----------------------------
+# Load environment variables
+# -----------------------------
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
 
-print("Calculator imported:", Calculator)
-print("AddOperation imported:", AddOperation)
+# -----------------------------
+# Import app modules
+# -----------------------------
+from app import models, crud
+from app.database import engine, get_db
+from app.schemas import UserCreate, UserRead
+from app.calculator import Calculator
+from app.operations import OperationFactory
+from app.routes_users import router as user_router
 
+# -----------------------------
+# Create FastAPI app
+# -----------------------------
+app = FastAPI(title="FastAPI Calculator + Users")
 
-app = FastAPI()
+# Mount frontend static files
 app.mount("/static", StaticFiles(directory="frontend"), name="frontend")
 
-
-# Optional: allow all origins for testing
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,11 +38,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create calculator instance
+# -----------------------------
+# Create database tables
+# -----------------------------
+models.Base.metadata.create_all(bind=engine)
+
+# -----------------------------
+# Include routers
+# -----------------------------
+app.include_router(user_router)
+
+# -----------------------------
+# Calculator Setup
+# -----------------------------
 calc = Calculator()
 
 @app.get("/calculate/{op_name}")
-def api_add(op_name: str, a: float, b: float):
+def api_calculate(op_name: str, a: float, b: float):
     try:
         operation = OperationFactory.create_operation(op_name)
         calc.set_operation(operation)
@@ -38,9 +63,30 @@ def api_add(op_name: str, a: float, b: float):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# -----------------------------
+# Auth routes (login/register)
+# -----------------------------
+@app.post("/login")
+def login(username: str, password: str, db: Session = Depends(get_db)):
+    user = crud.authenticate_user(db, username, password)
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    return {"message": f"Welcome, {user.username}!"}
 
+@app.post("/register", response_model=UserRead)
+def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
+    existing_user = db.query(models.User).filter(
+        (models.User.username == user_in.username) |
+        (models.User.email == user_in.email)
+    ).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username or email already exists")
+    user = crud.create_user(db, user_in)
+    return user
 
+# -----------------------------
 # CLI REPL (optional)
+# -----------------------------
 if __name__ == "__main__":
     from app.calculator_repl import calculator_repl
     calculator_repl()
