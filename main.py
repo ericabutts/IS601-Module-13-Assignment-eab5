@@ -41,7 +41,7 @@ app.add_middleware(
 # -----------------------------
 # Create database tables
 # -----------------------------
-models.Base.metadata.create_all(bind=engine)
+## models.Base.metadata.create_all(bind=engine)
 
 # -----------------------------
 # Include routers
@@ -66,9 +66,17 @@ def api_calculate(op_name: str, a: float, b: float):
 # -----------------------------
 # Auth routes (login/register)
 # -----------------------------
+from pydantic import BaseModel
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+from fastapi import Body
+
 @app.post("/login")
-def login(username: str, password: str, db: Session = Depends(get_db)):
-    user = crud.authenticate_user(db, username, password)
+def login(login_data: LoginRequest = Body(...), db: Session = Depends(get_db)):
+    user = crud.authenticate_user(db, login_data.username, login_data.password)
     if not user:
         raise HTTPException(status_code=400, detail="Invalid credentials")
     return {"message": f"Welcome, {user.username}!"}
@@ -87,6 +95,14 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
 # -----------------------------
 # CLI REPL (optional)
 # -----------------------------
+
+def init_db():
+    from app import models
+    from app.database import engine
+    models.Base.metadata.create_all(bind=engine)
+
+
 if __name__ == "__main__":
+    init_db()
     from app.calculator_repl import calculator_repl
     calculator_repl()

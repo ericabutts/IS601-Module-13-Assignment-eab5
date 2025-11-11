@@ -34,3 +34,4 @@ sqlalchemy
 passlib[bcrypt]
 pydantic[email]
 bcrypt
+playwright

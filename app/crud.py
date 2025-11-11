@@ -10,11 +10,11 @@ def verify_password(password: str, hashed: str):
     return hash_password(password) == hashed
 
 # Create user
-def create_user(db: Session, username: str, email: str, password: str):
+def create_user(db: Session, user_in):
     user = models.User(
-        username=username,
-        email=email,
-        password_hash=hash_password(password)
+        username=user_in.username,
+        email=user_in.email,
+        password_hash=hash_password(user_in.password)
     )
     db.add(user)
     db.commit()

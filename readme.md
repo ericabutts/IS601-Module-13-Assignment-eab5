@@ -165,6 +165,9 @@ Testing Instructions: How to run unit tests and check test coverage.
     # Run integration test on the FastAPI
     pytest -v tests/test_integration.py
 
+    # Run the tests inside Docker container with pgAdmin
+    docker-compose run backend pytest
+
 
 CI/CD Information: Overview of GitHub Actions workflow and its purpose.
 
@@ -173,6 +176,13 @@ CI/CD Information: Overview of GitHub Actions workflow and its purpose.
     The tests will fail if the changes result in less than 90% coverage.
 
     You can view the workflow status in your repository under Actions → Workflows.
+
+    BEFORE RUNNING Frontend Playwright Tests:
+    # if using Python 3, run the Frontend server
+    python -m http.server 5500 -d frontend/
+
+
+
 
 Accessing FastAPI Docs:
 

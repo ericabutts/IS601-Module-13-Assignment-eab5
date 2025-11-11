@@ -1,15 +1,23 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 import os
-from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-load_dotenv()  # Load .env variables
+# Environment-aware database URL
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+psycopg2://postgres:postgres@localhost:5432/fastapi_db"
+)
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@fastapi_db:5432/fastapi_db")
+# Create SQLAlchemy engine
+engine = create_engine(DATABASE_URL, echo=True)  # echo=True for debugging, optional
 
-engine = create_engine(DATABASE_URL)
+# SessionLocal factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# Base class for models
+Base = declarative_base()
+
+# Dependency for FastAPI routes
 def get_db():
     db = SessionLocal()
     try:
