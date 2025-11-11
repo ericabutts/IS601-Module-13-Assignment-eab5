@@ -3,10 +3,12 @@ name: CI Tests
 on:
   push:
     branches:
-      - module8
+      - main
+      - master
   pull_request:
     branches:
-      - module8
+      - main
+      - master
 
 jobs:
   test:
