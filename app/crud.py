@@ -1,29 +1,36 @@
+# app/crud.py
 from sqlalchemy.orm import Session
-from app import models
-import hashlib
+from . import models, security
+from datetime import datetime
 
-# Password hashing
-def hash_password(password: str):
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+# -----------------------
+# User CRUD operations
+# -----------------------
 
-def verify_password(password: str, hashed: str):
-    return hash_password(password) == hashed
-
-# Create user
 def create_user(db: Session, user_in):
-    user = models.User(
-        username=user_in.username,
-        email=user_in.email,
-        password_hash=hash_password(user_in.password)
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+    """
+    Create a new user in the database.
+    """
+    try:
+        user = models.User(
+            username=user_in.username,
+            email=user_in.email,
+            password_hash=security.hash_password(user_in.password),
+            created_at=datetime.now()
+        )
+        db.add(user)
+        db.commit()      # commit to persist the user
+        db.refresh(user) # refresh to get the auto-generated ID
+        return user
+    except:
+        db.rollback()
+        raise
 
-# Authenticate
 def authenticate_user(db: Session, username: str, password: str):
+    """
+    Authenticate user by username and password.
+    """
     user = db.query(models.User).filter(models.User.username == username).first()
-    if user and verify_password(password, user.password_hash):
+    if user and security.verify_password(password, user.password_hash):
         return user
     return None

@@ -20,8 +20,8 @@ from app.database import engine, get_db
 from app.schemas import UserCreate, UserRead
 from app.calculator import Calculator
 from app.operations import OperationFactory
-from app.routes_users import router as user_router
 from app.routes_calculations import router as calculation_router
+from app import schemas
 
 # -----------------------------
 # Create FastAPI app
@@ -47,7 +47,6 @@ app.add_middleware(
 # -----------------------------
 # Include routers
 # -----------------------------
-app.include_router(user_router)
 app.include_router(calculation_router)
 
 # -----------------------------
@@ -76,23 +75,25 @@ class LoginRequest(BaseModel):
 
 from fastapi import Body
 
-@app.post("/login")
-def login(login_data: LoginRequest = Body(...), db: Session = Depends(get_db)):
-    user = crud.authenticate_user(db, login_data.username, login_data.password)
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid credentials")
-    return {"message": f"Welcome, {user.username}!"}
-
-@app.post("/register", response_model=UserRead)
-def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
+@app.post("/register", response_model=schemas.UserRead)
+def register_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(
         (models.User.username == user_in.username) |
         (models.User.email == user_in.email)
     ).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Username or email already exists")
+    
     user = crud.create_user(db, user_in)
     return user
+
+@app.post("/login")
+def login(login_data: schemas.LoginRequest = Body(...), db: Session = Depends(get_db)):
+    user = crud.authenticate_user(db, login_data.username, login_data.password)
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    return {"message": f"Welcome, {user.username}!"}
+
 
 # -----------------------------
 # CLI REPL (optional)

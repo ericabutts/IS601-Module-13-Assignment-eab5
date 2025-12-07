@@ -18,6 +18,11 @@ class UserRead(BaseModel):
     class Config:
         orm_mode = True  # or `from_attributes = True` if using Pydantic v2
 
+# New model for login
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
 class OperationType(str, enum.Enum):
     """Enum for calculation operation types"""
     ADD = "ADD"
@@ -48,7 +53,6 @@ class CalculationCreate(BaseModel):
             raise ValueError(f"Operation type must be one of: {', '.join([op.value for op in OperationType])}")
         return v
 
-
 class CalculationRead(BaseModel):
     """Schema for reading a calculation"""
     id: int
@@ -60,7 +64,6 @@ class CalculationRead(BaseModel):
     user_id: Optional[int] = None
     
     model_config = ConfigDict(from_attributes=True)
-
 
 class CalculationUpdate(BaseModel):
     """Schema for updating a calculation (if needed)"""
