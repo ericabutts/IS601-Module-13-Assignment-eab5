@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+</head>
+<body>
+    <h1>Create Account</h1>
+
+    <input id="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password (min 6 chars)" />
+    <button id="registerBtn">Register</button>
+
+    <p id="message"></p>
+
+    <script>
+        document.getElementById("registerBtn").onclick = async () => {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            if (password.length < 6) {
+                document.getElementById("message").textContent = "Password too short";
+                return;
+            }
+
+            const res = await fetch("http://localhost:8000/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    email,
+                    username: email,
+                    password 
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                localStorage.setItem("token", data.access_token);
+                document.getElementById("message").textContent = "Registration successful!";
+            } else {
+                document.getElementById("message").textContent = "Error: Could not register";
+            }
+        };
+    </script>
+</body>
+</html>

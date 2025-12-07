@@ -70,3 +70,7 @@ class CalculationUpdate(BaseModel):
     a: Optional[Decimal] = None
     b: Optional[Decimal] = None
     type: Optional[OperationType] = None
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

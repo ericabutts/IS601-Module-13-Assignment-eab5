@@ -35,3 +35,5 @@ passlib[bcrypt]
 pydantic[email]
 bcrypt
 playwright
+python-jose[cryptography]
+passlib[bcrypt]

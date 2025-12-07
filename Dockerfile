@@ -27,6 +27,10 @@ RUN apt-get update && apt-get install -y \
 # Install Playwright browsers
 RUN playwright install
 
+# Dockerfile example snippet
+RUN pip uninstall -y jose
+RUN pip install --no-cache-dir python-jose[cryptography] passlib[bcrypt]
+
 COPY . .
 
 EXPOSE 8000

@@ -97,3 +97,4 @@ def test_get_calculation(mock_db):
     assert float(data["result"]) == 8.0
 
     app.dependency_overrides.clear()
+

@@ -68,7 +68,9 @@ def api_calculate(op_name: str, a: float, b: float):
 # -----------------------------
 from fastapi import Body
 
-@app.post("/register", response_model=schemas.UserRead)
+from app.auth import create_access_token
+
+@app.post("/register", response_model=schemas.Token)
 def register_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(
         (models.User.username == user_in.username) |
@@ -78,14 +80,19 @@ def register_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Username or email already exists")
     
     user = crud.create_user(db, user_in)
-    return user
 
-@app.post("/login")
-def login(login_data: schemas.LoginRequest = Body(...), db: Session = Depends(get_db)):
+    token = create_access_token({"sub": user.email})
+    return {"access_token": token, "token_type": "bearer"}
+
+@app.post("/login", response_model=schemas.Token)
+def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
     user = crud.authenticate_user(db, login_data.username, login_data.password)
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid credentials")
-    return {"message": f"Welcome, {user.username}!"}
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    token = create_access_token({"sub": user.email})
+    return {"access_token": token, "token_type": "bearer"}
+
 
 # -----------------------------
 # CLI REPL (optional)
